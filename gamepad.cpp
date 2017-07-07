@@ -8,6 +8,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include "controller.hpp"
 
 // A lot of the following code has been adapted from SDL
 
@@ -145,6 +146,7 @@ int main () {
     struct timespec end_time;
     long diffInNanos;
     clock_gettime(CLOCK_REALTIME, &start_time);
+    Controller *ctrl = new LoggingController();
 
     // Poll events
     do {
@@ -172,6 +174,7 @@ int main () {
                 case ABS_HAT3Y:
                     ev.code -= ABS_HAT0X;
                     printf("Hat %d Axis %d Value %d\n", ev.code / 2, ev.code % 2, ev.value);
+                    ctrl->steering(ev.value);
                     break;
                 default:
                     printf("Axis %d Value %d\n", abs_map[ev.code], ev.value);
@@ -192,4 +195,6 @@ int main () {
             }
         }
     } while (rc == 1 || rc == 0 || rc == -EAGAIN);
+
+    delete ctrl;
 }
