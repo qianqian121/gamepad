@@ -7,7 +7,7 @@ pkg_check_modules(GLIB2 glib-2.0)
 message(warning $(LIBEVEDV))
 
 PROJECT(gamepad)
-add_executable(${PROJECT_NAME} gamepad.cpp)
+add_executable(${PROJECT_NAME} gamepad.cpp PlexusController.cpp)
 
 include_directories(
         ${LIBEVDEV_INCLUDE_DIRS}

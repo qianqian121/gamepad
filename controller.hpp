@@ -42,6 +42,22 @@ public:
     }
 };
 
+class PlexusController: public Controller {
+public:
+    PlexusController();
+
+    virtual ~PlexusController();
+
+    void steering(int angle);
+
+    void throttle() {
+
+    }
+    void braking() {
+
+    }
+};
+
 #ifdef __cplusplus
 }
 #endif
