@@ -154,8 +154,8 @@ int main () {
         rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
         if (rc == 0) {
             clock_gettime(CLOCK_REALTIME, &end_time);
-            diffInNanos = 1e6 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec);
-            printf("Diff time %d\n", diffInNanos);
+            diffInNanos = 1e6 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+            printf("Diff time %ld\n", diffInNanos);
             switch (ev.type) {
             case EV_KEY:
                 if (ev.code >= BTN_MISC) {
@@ -174,10 +174,13 @@ int main () {
                 case ABS_HAT3Y:
                     ev.code -= ABS_HAT0X;
                     printf("Hat %d Axis %d Value %d\n", ev.code / 2, ev.code % 2, ev.value);
-                    ctrl->steering(ev.value);
                     break;
                 default:
                     printf("Axis %d Value %d\n", abs_map[ev.code], ev.value);
+                    // Axis 132: Steering
+                    // Axis 136: Throttle
+                    // Axis 137: Brake
+                    ctrl->steering(ev.value);
                     break;
                 }
                 break;
