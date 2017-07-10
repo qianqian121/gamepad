@@ -16,8 +16,8 @@ public:
 
     }
     virtual void steering(int) = 0;
-    virtual void throttle() = 0;
-    virtual void braking() = 0;
+    virtual void throttle(int) = 0;
+    virtual void braking(int) = 0;
 };
 
 class LoggingController: public Controller {
@@ -34,11 +34,11 @@ public:
         std::cout << "Steering " << angle << std::endl;
     }
 
-    void throttle() {
-
+    void throttle(int precentage) {
+        std::cout << "Throttle " << precentage << std::endl;
     }
-    void braking() {
-
+    void braking(int precentage) {
+        std::cout << "Braking " << precentage << std::endl;
     }
 };
 
@@ -50,12 +50,16 @@ public:
 
     void steering(int angle);
 
-    void throttle() {
+    void throttle(int percentage) {
 
     }
-    void braking() {
+    void braking(int percentage) {
 
     }
+    int turnON();
+    void turnOFF();
+private:
+    VehicleController *vctrl;
 };
 
 #ifdef __cplusplus

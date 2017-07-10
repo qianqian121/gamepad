@@ -147,6 +147,9 @@ int main () {
     long diffInNanos;
     clock_gettime(CLOCK_REALTIME, &start_time);
     Controller *ctrl = new LoggingController();
+    int axis;
+    int percentage;
+    int angle;
 
     // Poll events
     do {
@@ -177,10 +180,27 @@ int main () {
                     break;
                 default:
                     printf("Axis %d Value %d\n", abs_map[ev.code], ev.value);
-                    // Axis 132: Steering
-                    // Axis 136: Throttle
-                    // Axis 137: Brake
-                    ctrl->steering(ev.value);
+                    axis = abs_map[ev.code];
+                    // Axis 132: Steering   F310    // 132: L2  0-16383
+                    // Axis 136: Throttle  F310   // 133: L2    255-0
+                    // Axis 137: Brake  F310    // 134: L2  255-0
+                    switch (axis) {
+                    case 132:
+                        angle = (ev.value - 16384 / 2) * 900 / 16384;
+                        ctrl->steering(angle);
+                        break;
+                    case 133:
+                        percentage = 100 - ev.value * 100 / 255;
+                        ctrl->throttle(percentage);
+                        break;
+                    case 134:
+                        percentage = 100 - ev.value * 100 / 255;
+                        ctrl->braking(percentage);
+                        break;
+                    default:
+                        break;
+                    }
+
                     break;
                 }
                 break;
