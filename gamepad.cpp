@@ -104,7 +104,7 @@ int main () {
     printf("\n\n");
 
     // Get info about axes
-    int naxes;
+    int naxes = 0;
     guint8 abs_map[ABS_MAX];
     for (i = 0; i < ABS_MAX; ++i) {
         /* Skip hats */
@@ -158,7 +158,7 @@ int main () {
         if (rc == 0) {
             clock_gettime(CLOCK_REALTIME, &end_time);
             diffInNanos = 1e6 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
-            printf("Diff time %ld\n", diffInNanos);
+//            printf("Diff time %ld\n", diffInNanos);
             switch (ev.type) {
             case EV_KEY:
                 if (ev.code >= BTN_MISC) {
@@ -185,15 +185,15 @@ int main () {
                     // Axis 136: Throttle  F310   // 133: L2    255-0
                     // Axis 137: Brake  F310    // 134: L2  255-0
                     switch (axis) {
-                    case 132:
+                    case 0:
                         angle = (ev.value - 16384 / 2) * 900 / 16384;
                         ctrl->steering(angle);
                         break;
-                    case 133:
+                    case 1:
                         percentage = 100 - ev.value * 100 / 255;
                         ctrl->throttle(percentage);
                         break;
-                    case 134:
+                    case 2:
                         percentage = 100 - ev.value * 100 / 255;
                         ctrl->braking(percentage);
                         break;
