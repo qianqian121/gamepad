@@ -101,6 +101,15 @@ int main () {
         }
     }
 
+    int nleds = 0;
+    for (i = LED_NUML; i < LED_MAX; ++i) {
+        if (libevdev_has_event_code(dev, EV_LED, i)) {
+            printf("%d - Joystick has led: 0x%x - %s\n", nleds, i,
+                   libevdev_event_code_get_name(EV_LED, i));
+            ++nleds;
+        }
+    }
+
     printf("\n\n");
 
     // Get info about axes
