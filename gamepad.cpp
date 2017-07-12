@@ -66,27 +66,74 @@ void parse_f310(Controller *ctrl, int axis, int val) {
     }
 }
 
-void parse_g29(Controller *ctrl, int axis, int val) {
-    int percentage;
-    int angle;
+void parse_g29(int axis, int val) {
+//    int percentage;
+//    int angle;
     // 0: G29  0-16383
     // 1: G29    255-0
     // 2: G29  255-0
     switch (axis) {
     case 0:
         angle = (val - 65535 / 2) * 900 / 65535;
-        ctrl->steering(angle);
+//        ctrl->steering(angle);
         break;
     case 1:
-        percentage = 100 - val * 100 / 255;
-        ctrl->throttle(percentage);
+        throttle = 100 - val * 100 / 255;
+//        ctrl->throttle(percentage);
         break;
     case 2:
-        percentage = 100 - val * 100 / 255;
-        ctrl->braking(percentage);
+        throttle = 100 - val * 100 / 255;
+        throttle = -throttle;
+//        ctrl->braking(percentage);
         break;
     default:
         break;
+    }
+}
+
+const int hz = 30;
+const long periodIn100us = 1e4 / hz;
+
+struct timespec start_time;
+struct timespec end_time;
+int angle = 0;
+int throttle = 0;
+
+void pubTwist(Controller *ctrl) {
+    long long diffInNanos;
+    int prev_throttle = 0;
+
+    clock_gettime(CLOCK_REALTIME, &end_time);
+    diffInNanos = 1e9 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+    diffIn100us = diffInNanos / 1e5;
+
+    if (diffIn100us > periodIn100us) {
+        printf("Diff time %ld\n", diffIn100us);
+        ctrl->steering(angle);
+
+        if (throttle == 0) {
+            if (prev_throttle == 0)
+                return;
+            else if(prev_throttle > 0)
+                ctrl->throttle(0);
+            else
+                ctrl->brake(0);
+            prev_throttle = 0;
+        }
+        else if ((throttle >= 0 && prev_throttle < 0) || (throttle <= 0 && prev_throttle > 0)) {
+            if (prev_throttle > 0)
+                ctrl->throttle(0);
+            else
+                ctrl->brake(0);
+            prev_throttle = 0;
+        }
+        else {
+            if (throttle > 0)
+                ctrl->throttle(throttle);
+            else
+                ctrl->brake(-throttle);
+            prev_throttle = throttle;
+        }
     }
 }
 
@@ -199,21 +246,17 @@ int main () {
 
     printf("\n\n");
 
-    struct timespec start_time;
-    struct timespec end_time;
-    long diffInNanos;
-    clock_gettime(CLOCK_REALTIME, &start_time);
     Controller *ctrl = new LoggingController();
     int axis;
 
+    clock_gettime(CLOCK_REALTIME, &start_time);
     // Poll events
     do {
         struct input_event ev;
         rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
+
         if (rc == 0) {
-            clock_gettime(CLOCK_REALTIME, &end_time);
-            diffInNanos = 1e6 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
-//            printf("Diff time %ld\n", diffInNanos);
+
             switch (ev.type) {
             case EV_KEY:
                 if (ev.code >= BTN_MISC) {
@@ -236,7 +279,7 @@ int main () {
                 default:
                     printf("Axis %d Value %d\n", abs_map[ev.code], ev.value);
                     axis = abs_map[ev.code];
-                    parse_g29(ctrl, axis, ev.value);
+                    parse_g29(axis, ev.value);
                     break;
                 }
                 break;
@@ -253,6 +296,9 @@ int main () {
                 break;
             }
         }
+
+        pubTwist(ctrl, angle, throttle);
+
     } while (rc == 1 || rc == 0 || rc == -EAGAIN);
 
     delete ctrl;
