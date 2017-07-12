@@ -42,6 +42,54 @@ void guid_to_string(guint16 * guid, char * guidstr) {
     *guidstr = '\0';
 }
 
+void parse_f310(Controller *ctrl, int axis, int val) {
+    int percentage;
+    int angle;
+    // Axis 0: Steering   F310
+    // Axis 4: Throttle  F310
+    // Axis 5: Brake  F310
+    switch (axis) {
+    case 0:
+        angle = val * 90 / 32768;
+        ctrl->steering(angle);
+        break;
+    case 1:
+        percentage = val * 100 / 255;
+        ctrl->throttle(percentage);
+        break;
+    case 2:
+        percentage = val * 100 / 255;
+        ctrl->braking(percentage);
+        break;
+    default:
+        break;
+    }
+}
+
+void parse_g29(Controller *ctrl, int axis, int val) {
+    int percentage;
+    int angle;
+    // 0: G29  0-16383
+    // 1: G29    255-0
+    // 2: G29  255-0
+    switch (axis) {
+    case 0:
+        angle = (val - 65535 / 2) * 900 / 65535;
+        ctrl->steering(angle);
+        break;
+    case 1:
+        percentage = 100 - val * 100 / 255;
+        ctrl->throttle(percentage);
+        break;
+    case 2:
+        percentage = 100 - val * 100 / 255;
+        ctrl->braking(percentage);
+        break;
+    default:
+        break;
+    }
+}
+
 int main () {
     int i;
     struct libevdev *dev = NULL;
@@ -157,8 +205,6 @@ int main () {
     clock_gettime(CLOCK_REALTIME, &start_time);
     Controller *ctrl = new LoggingController();
     int axis;
-    int percentage;
-    int angle;
 
     // Poll events
     do {
@@ -190,26 +236,7 @@ int main () {
                 default:
                     printf("Axis %d Value %d\n", abs_map[ev.code], ev.value);
                     axis = abs_map[ev.code];
-                    // Axis 132: Steering   F310    // 132: L2  0-16383
-                    // Axis 136: Throttle  F310   // 133: L2    255-0
-                    // Axis 137: Brake  F310    // 134: L2  255-0
-                    switch (axis) {
-                    case 0:
-                        angle = (ev.value - 16384 / 2) * 900 / 16384;
-                        ctrl->steering(angle);
-                        break;
-                    case 1:
-                        percentage = 100 - ev.value * 100 / 255;
-                        ctrl->throttle(percentage);
-                        break;
-                    case 2:
-                        percentage = 100 - ev.value * 100 / 255;
-                        ctrl->braking(percentage);
-                        break;
-                    default:
-                        break;
-                    }
-
+                    parse_g29(ctrl, axis, ev.value);
                     break;
                 }
                 break;
