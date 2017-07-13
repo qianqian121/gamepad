@@ -20,6 +20,10 @@ public:
     virtual void braking(int) = 0;
 };
 
+struct Context {
+    bool exitflag;
+};
+
 class LoggingController: public Controller {
 public:
     LoggingController() : Controller() {
@@ -30,16 +34,13 @@ public:
 
     }
 
-    void steering(int angle) {
-        std::cout << "Steering " << angle << std::endl;
-    }
+    void steering(int angle);
 
-    void throttle(int precentage) {
-        std::cout << "Throttle " << precentage << std::endl;
-    }
-    void braking(int precentage) {
-        std::cout << "Braking " << precentage << std::endl;
-    }
+    void throttle(int precentage);
+    void braking(int precentage);
+private:
+    bool isOn;
+    struct Context context;
 };
 
 class PlexusController: public Controller {

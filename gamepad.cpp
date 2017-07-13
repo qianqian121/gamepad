@@ -42,6 +42,14 @@ void guid_to_string(guint16 * guid, char * guidstr) {
     *guidstr = '\0';
 }
 
+const int hz = 30;
+const long long periodIn100us = 1e4 / hz;
+
+struct timespec start_time;
+struct timespec end_time;
+int angle = 0;
+int throttle = 0;
+
 void parse_f310(Controller *ctrl, int axis, int val) {
     int percentage;
     int angle;
@@ -91,16 +99,9 @@ void parse_g29(int axis, int val) {
     }
 }
 
-const int hz = 30;
-const long periodIn100us = 1e4 / hz;
-
-struct timespec start_time;
-struct timespec end_time;
-int angle = 0;
-int throttle = 0;
-
 void pubTwist(Controller *ctrl) {
     long long diffInNanos;
+    long long diffIn100us;
     int prev_throttle = 0;
 
     clock_gettime(CLOCK_REALTIME, &end_time);
@@ -108,7 +109,8 @@ void pubTwist(Controller *ctrl) {
     diffIn100us = diffInNanos / 1e5;
 
     if (diffIn100us > periodIn100us) {
-        printf("Diff time %ld\n", diffIn100us);
+        start_time = end_time;
+        printf("Diff time %lld\n", diffIn100us);
         ctrl->steering(angle);
 
         if (throttle == 0) {
@@ -117,21 +119,21 @@ void pubTwist(Controller *ctrl) {
             else if(prev_throttle > 0)
                 ctrl->throttle(0);
             else
-                ctrl->brake(0);
+                ctrl->braking(0);
             prev_throttle = 0;
         }
         else if ((throttle >= 0 && prev_throttle < 0) || (throttle <= 0 && prev_throttle > 0)) {
             if (prev_throttle > 0)
                 ctrl->throttle(0);
             else
-                ctrl->brake(0);
+                ctrl->braking(0);
             prev_throttle = 0;
         }
         else {
             if (throttle > 0)
                 ctrl->throttle(throttle);
             else
-                ctrl->brake(-throttle);
+                ctrl->braking(-throttle);
             prev_throttle = throttle;
         }
     }
@@ -297,7 +299,7 @@ int main () {
             }
         }
 
-        pubTwist(ctrl, angle, throttle);
+        pubTwist(ctrl);
 
     } while (rc == 1 || rc == 0 || rc == -EAGAIN);
 
