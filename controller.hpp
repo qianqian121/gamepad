@@ -21,47 +21,47 @@ public:
 };
 
 struct Context {
-    bool exitflag;
+    bool exit_flag;
 };
 
 class LoggingController: public Controller {
 public:
-    LoggingController() : Controller() {
+    LoggingController();
 
-    }
-
-    virtual ~LoggingController() {
-
-    }
+    virtual ~LoggingController();
 
     void steering(int angle);
 
     void throttle(int precentage);
     void braking(int precentage);
-private:
-    bool isOn;
-    struct Context context;
-};
 
-class PlexusController: public Controller {
-public:
-    PlexusController();
-
-    virtual ~PlexusController();
-
-    void steering(int angle);
-
-    void throttle(int percentage) {
-
-    }
-    void braking(int percentage) {
-
-    }
     int turnON();
     void turnOFF();
 private:
-    VehicleController *vctrl;
+    bool isOn;
+    pthread_t threadID;
+    struct Context context;
 };
+
+//class PlexusController: public Controller {
+//public:
+//    PlexusController();
+//
+//    virtual ~PlexusController();
+//
+//    void steering(int angle);
+//
+//    void throttle(int percentage) {
+//
+//    }
+//    void braking(int percentage) {
+//
+//    }
+//    int turnON();
+//    void turnOFF();
+//private:
+//    VehicleController *vctrl;
+//};
 
 #ifdef __cplusplus
 }

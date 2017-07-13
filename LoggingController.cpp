@@ -3,9 +3,10 @@
 
 using namespace std;
 
-void *threadLoop(void *sz)
+void *threadLoop(void *ctx)
 {
-    msg = context->messg;
+//    msg = context->messg;
+    struct Context *context = (struct Context *)ctx;
     while (!context->exit_flag) {
 
     }
@@ -15,8 +16,6 @@ void *threadLoop(void *sz)
 LoggingController::LoggingController() : Controller() {
     isOn = false;
 }
-
-context;
 
 LoggingController::~LoggingController() {
     turnOFF();
@@ -35,10 +34,10 @@ void LoggingController::braking(int precentage) {
 
 int LoggingController::turnON() {
     if (!isOn) {
-        context.exitflag = false;
+        context.exit_flag = false;
         std::cout << "turning on" << std::endl;
-        pthread_t threadID;
-        pthread_create(&threadID, NULL, threadLoop, (void *)context);
+
+        pthread_create(&threadID, NULL, threadLoop, (void *)&context);
         isOn = true;
     }
     return 0;
@@ -50,17 +49,19 @@ int LoggingController::turnON() {
 
 void LoggingController::turnOFF() {
     if (isOn) {
+        int rc = 0;
+        void *status;
         std::cout << "Turning everying off complete" << std::endl;
 
-        context->exit_flag = 1;
-        rc = pthread_join(threads[i], &status);
+        context.exit_flag = 1;
+        rc = pthread_join(threadID, &status);
 
         if (rc){
             cout << "Error:unable to join," << rc << endl;
-            exit(-1);
+            return;
         }
 
-        cout << "Main: completed thread id :" << i ;
+        cout << "Main: completed thread id :" << endl ;
         cout << "  exiting with status :" << status << endl;
         pthread_exit(NULL);
         isOn = false;
