@@ -110,7 +110,7 @@ void pubTwist(Controller *ctrl) {
 
     if (diffIn100us > periodIn100us) {
         start_time = end_time;
-        printf("Diff time %lld\n", diffIn100us);
+//        printf("Diff time %lld\n", diffIn100us);
         ctrl->steering(angle);
 
         if (throttle == 0) {
@@ -255,6 +255,7 @@ int main () {
     // Poll events
     do {
         struct input_event ev;
+        int button;
         rc = libevdev_next_event(dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
 
         if (rc == 0) {
@@ -263,6 +264,18 @@ int main () {
             case EV_KEY:
                 if (ev.code >= BTN_MISC) {
                     printf("Button %d\n", key_map[ev.code - BTN_MISC]);
+                }
+                button = key_map[ev.code - BTN_MISC];
+                switch (button) {
+                    case 23:
+                        ctrl->turnON();
+                        break;
+                    case 21:
+                    case 22:
+                        ctrl->turnOFF();
+                        break;
+                    default:
+                        break;
                 }
                 break;
             case EV_ABS:

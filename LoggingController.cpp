@@ -1,5 +1,6 @@
 #include "controller.hpp"
 #include <pthread.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -8,9 +9,11 @@ void *threadLoop(void *ctx)
 //    msg = context->messg;
     struct Context *context = (struct Context *)ctx;
     while (!context->exit_flag) {
-
+        cout << "." << endl;
+        sleep(1);
     }
-    pthread_exit(NULL);
+    return(NULL);
+//    pthread_exit(NULL);
 }
 
 LoggingController::LoggingController() : Controller() {
@@ -22,7 +25,7 @@ LoggingController::~LoggingController() {
 }
 
 void LoggingController::steering(int angle) {
-    std::cout << "Steering " << angle << std::endl;
+//    std::cout << "Steering " << angle << std::endl;
 }
 
 void LoggingController::throttle(int precentage) {
@@ -34,11 +37,11 @@ void LoggingController::braking(int precentage) {
 
 int LoggingController::turnON() {
     if (!isOn) {
+        isOn = true;
         context.exit_flag = false;
         std::cout << "turning on" << std::endl;
 
         pthread_create(&threadID, NULL, threadLoop, (void *)&context);
-        isOn = true;
     }
     return 0;
 }
@@ -51,6 +54,7 @@ void LoggingController::turnOFF() {
     if (isOn) {
         int rc = 0;
         void *status;
+
         std::cout << "Turning everying off complete" << std::endl;
 
         context.exit_flag = 1;
@@ -60,10 +64,7 @@ void LoggingController::turnOFF() {
             cout << "Error:unable to join," << rc << endl;
             return;
         }
-
-        cout << "Main: completed thread id :" << endl ;
-        cout << "  exiting with status :" << status << endl;
-        pthread_exit(NULL);
         isOn = false;
+        cout << "Main: completed thread, exiting with status :" << status << endl;
     }
 }

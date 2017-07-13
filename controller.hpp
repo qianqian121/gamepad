@@ -18,6 +18,8 @@ public:
     virtual void steering(int) = 0;
     virtual void throttle(int) = 0;
     virtual void braking(int) = 0;
+    virtual int turnON() = 0;
+    virtual void turnOFF() = 0;
 };
 
 struct Context {
