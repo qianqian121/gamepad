@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 using namespace std;
+#define DPRINT
 
 void *threadLoop(void *ctx)
 {
@@ -25,14 +26,20 @@ LoggingController::~LoggingController() {
 }
 
 void LoggingController::steering(int angle) {
+#ifdef DPRINT
     std::cout << "Steering " << angle << std::endl;
+#endif
 }
 
 void LoggingController::throttle(int precentage) {
+#ifdef DPRINT
     std::cout << "Throttle " << precentage << std::endl;
+#endif
 }
 void LoggingController::braking(int precentage) {
+#ifdef DPRINT
     std::cout << "Braking " << precentage << std::endl;
+#endif
 }
 
 int LoggingController::turnON() {

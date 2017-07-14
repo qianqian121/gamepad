@@ -53,24 +53,23 @@ struct timespec end_time;
 int angle = 0;
 int throttle = 0;
 
-void parse_f310(Controller *ctrl, int axis, int val) {
-    int percentage;
-    int angle;
+void parse_f310(int axis, int val) {
     // Axis 0: Steering   F310
     // Axis 4: Throttle  F310
     // Axis 5: Brake  F310
     switch (axis) {
     case 0:
-        angle = val * 90 / 32768;
-        ctrl->steering(angle);
-        break;
-    case 1:
-        percentage = val * 100 / 255;
-        ctrl->throttle(percentage);
+        angle = val * 900 / 32768;
+//        ctrl->steering(angle);
         break;
     case 2:
-        percentage = val * 100 / 255;
-        ctrl->braking(percentage);
+        throttle = val * 100 / 255;
+//        ctrl->throttle(percentage);
+        break;
+    case 5:
+        throttle = val * 100 / 255;
+        throttle = -throttle;
+//        ctrl->braking(percentage);
         break;
     default:
         break;
@@ -88,11 +87,12 @@ void parse_g29(int axis, int val) {
         angle = (val - 65535 / 2) * 900 / 65535;
 //        ctrl->steering(angle);
         break;
-    case 1:
+    case 2:
         throttle = 100 - val * 100 / 255;
 //        ctrl->throttle(percentage);
         break;
-    case 2:
+    case 1:
+    case 5:
         throttle = 100 - val * 100 / 255;
         throttle = -throttle;
 //        ctrl->braking(percentage);
@@ -270,9 +270,11 @@ int main () {
                 }
                 button = key_map[ev.code - BTN_MISC];
                 switch (button) {
+                    case 7:
                     case 23:
                         ctrl->turnON();
                         break;
+                    case 1:
                     case 21:
                     case 22:
                         ctrl->turnOFF();
@@ -295,9 +297,10 @@ int main () {
                     dprintf("Hat %d Axis %d Value %d\n", ev.code / 2, ev.code % 2, ev.value);
                     break;
                 default:
-                    dprintf("Axis %d Value %d\n", abs_map[ev.code], ev.value);
-                    axis = abs_map[ev.code];
-                    parse_g29(axis, ev.value);
+                    dprintf("Axis %d Value %d\n", ev.code, ev.value);
+                    axis = ev.code;
+//                    parse_g29(axis, ev.value);
+                    parse_f310(axis, ev.value);
                     break;
                 }
                 break;
