@@ -1,7 +1,7 @@
 //
 // Created by Mike on 7/7/17.
 //
-#include "controller.hpp"
+#include "PlexusController.hpp"
 #include <pthread.h>
 
 int mycallback (void* messageTypeStruct)
@@ -33,38 +33,23 @@ int mycallback (void* messageTypeStruct)
     return 0;
 }
 
-struct message{
-    int cmd;
-};
-std::queue<message> q;
-
-p.push(msg);
-
-msg = q.top();
-q.pop();
-
-
-void *threadLoop(void *context)
+void *threadLoop(void *ctx)
 {
-    msg = context->messg;
-    while (1) {
-
+//    msg = context->messg;
+    struct Context *context = (struct Context *)ctx;
+    while (!context->exit_flag) {
+        cout << "." << endl;
+        sleep(1);
     }
-    pthread_exit(NULL);
+    return(NULL);
+//    pthread_exit(NULL);
 }
-
-th = pthread_create(&do_somthing);
-
-pthread_kill()
-//pthread_self(&th);
 
 PlexusController::PlexusController() : Controller() {
     vctrl = &(VehicleController::getInstance());
     vctrl->registerCallback(mycallback);
     vctrl.waitSeconds(1);
 }
-
-context;
 
 PlexusController::~PlexusController() {
     turnOFF();
@@ -79,15 +64,25 @@ void PlexusController::steering(int angle) {
     std::cout << "Steering " << angle << std::endl;
 }
 
+void PlexusController::throttle(int percentage) {
+
+}
+void PlexusController::braking(int percentage) {
+
+}
+
 int PlexusController::turnON() {
-    if (VehicleController::getInstance().turnON() == ClientMessages::Fault::ERROR)
-    {
-        std::cout << "Error setting VehicleController ON state " << std::endl;
-        return -1;
+    if (!isOn) {
+        if (VehicleController::getInstance().turnON() == ClientMessages::Fault::ERROR) {
+            std::cout << "Error setting VehicleController ON state " << std::endl;
+            return -1;
+        }
+        isOn = true;
+        context.exit_flag = false;
+        std::cout << "turning on" << std::endl;
+
+        pthread_create(&threadID, NULL, threadLoop, (void *)&context);
     }
-    std::cout << "turning on" << std::endl;
-    pthread_t threadID;
-    pthread_create(&threadID, NULL, threadLoop, (void *)context);
     return 0;
 }
 
@@ -96,19 +91,22 @@ int setVelocity(int velocity) {
 }
 
 void PlexusController::turnOFF() {
-    vctrl->turnOFF();
-    std::cout << "Turning everying off complete" << std::endl;
-    vctrl->waitSeconds(1);
+    if (isOn) {
+        int rc = 0;
+        void *status;
 
-    context->exit_flag = 1;
-    rc = pthread_join(threads[i], &status);
+        vctrl->turnOFF();
+        std::cout << "Turning everying off complete" << std::endl;
+        vctrl->waitSeconds(1);
 
-    if (rc){
-        cout << "Error:unable to join," << rc << endl;
-        exit(-1);
+        context.exit_flag = 1;
+        rc = pthread_join(threadID, &status);
+
+        if (rc){
+            cout << "Error:unable to join," << rc << endl;
+            return;
+        }
+        isOn = false;
+        cout << "Main: completed thread, exiting with status :" << status << endl;
     }
-
-    cout << "Main: completed thread id :" << i ;
-    cout << "  exiting with status :" << status << endl;
-    pthread_exit(NULL);
 }

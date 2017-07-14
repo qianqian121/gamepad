@@ -1,5 +1,5 @@
-#include "controller.hpp"
-#include <pthread.h>
+#include "LoggingController.hpp"
+#include <iostream>
 #include <unistd.h>
 
 using namespace std;
@@ -25,7 +25,7 @@ LoggingController::~LoggingController() {
 }
 
 void LoggingController::steering(int angle) {
-//    std::cout << "Steering " << angle << std::endl;
+    std::cout << "Steering " << angle << std::endl;
 }
 
 void LoggingController::throttle(int precentage) {

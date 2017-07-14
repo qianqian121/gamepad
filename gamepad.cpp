@@ -9,6 +9,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "controller.hpp"
+#include "LoggingController.hpp"
+
+#define dprintf //printf
 
 // A lot of the following code has been adapted from SDL
 
@@ -263,7 +266,7 @@ int main () {
             switch (ev.type) {
             case EV_KEY:
                 if (ev.code >= BTN_MISC) {
-                    printf("Button %d\n", key_map[ev.code - BTN_MISC]);
+                    dprintf("Button %d\n", key_map[ev.code - BTN_MISC]);
                 }
                 button = key_map[ev.code - BTN_MISC];
                 switch (button) {
@@ -289,10 +292,10 @@ int main () {
                 case ABS_HAT3X:
                 case ABS_HAT3Y:
                     ev.code -= ABS_HAT0X;
-                    printf("Hat %d Axis %d Value %d\n", ev.code / 2, ev.code % 2, ev.value);
+                    dprintf("Hat %d Axis %d Value %d\n", ev.code / 2, ev.code % 2, ev.value);
                     break;
                 default:
-                    printf("Axis %d Value %d\n", abs_map[ev.code], ev.value);
+                    dprintf("Axis %d Value %d\n", abs_map[ev.code], ev.value);
                     axis = abs_map[ev.code];
                     parse_g29(axis, ev.value);
                     break;
@@ -303,7 +306,7 @@ int main () {
                 case REL_X:
                 case REL_Y:
                     ev.code -= REL_X;
-                    printf("Ball %d Axis %d Value %d\n", ev.code / 2, ev.code % 2, ev.value);
+                    dprintf("Ball %d Axis %d Value %d\n", ev.code / 2, ev.code % 2, ev.value);
                     break;
                 default:
                     break;
